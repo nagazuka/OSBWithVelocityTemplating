@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml-fragment xmlns:ser="http://www.bea.com/wli/sb/services" xmlns:tran="http://www.bea.com/wli/sb/transports" xmlns:env="http://www.bea.com/wli/config/env" xmlns:http="http://www.bea.com/wli/sb/transports/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:con="http://www.bea.com/wli/sb/pipeline/config" xmlns:con1="http://www.bea.com/wli/sb/stages/transform/config" xmlns:con2="http://www.bea.com/wli/sb/stages/config">
+  <ser:coreEntry isProxy="true" isEnabled="true">
+    <ser:binding type="SOAP" isSoap12="false" xsi:type="con:SoapBindingType" xmlns:con="http://www.bea.com/wli/sb/services/bindings/config">
+      <con:wsdl ref="TemplateService/TemplateService_v1"/>
+      <con:binding>
+        <con:name>TemplateService_v1SOAP</con:name>
+        <con:namespace>http://nl.nagazuka.services.example/TemplateService_v1/</con:namespace>
+      </con:binding>
+      <con:selector type="SOAP body"/>
+      <con:WSI-compliant>false</con:WSI-compliant>
+    </ser:binding>
+    <ser:monitoring isEnabled="false">
+      <ser:aggregationInterval>10</ser:aggregationInterval>
+      <ser:pipelineMonitoringLevel>Pipeline</ser:pipelineMonitoringLevel>
+    </ser:monitoring>
+    <ser:reporting>true</ser:reporting>
+    <ser:logging isEnabled="true">
+      <ser:logLevel>debug</ser:logLevel>
+    </ser:logging>
+    <ser:sla-alerting isEnabled="true">
+      <ser:alertLevel>normal</ser:alertLevel>
+    </ser:sla-alerting>
+    <ser:pipeline-alerting isEnabled="true">
+      <ser:alertLevel>normal</ser:alertLevel>
+    </ser:pipeline-alerting>
+    <ser:ws-policy>
+      <ser:binding-mode>wsdl-policy-attachments</ser:binding-mode>
+    </ser:ws-policy>
+  </ser:coreEntry>
+  <ser:endpointConfig>
+    <tran:provider-id>http</tran:provider-id>
+    <tran:inbound>true</tran:inbound>
+    <tran:URI>
+      <env:value>/TemplateService/TemplateService_v1</env:value>
+    </tran:URI>
+    <tran:inbound-properties/>
+    <tran:all-headers>false</tran:all-headers>
+    <tran:provider-specific>
+      <http:inbound-properties/>
+    </tran:provider-specific>
+  </ser:endpointConfig>
+  <ser:router>
+    <con:pipeline type="request" name="PipelinePairNode1_request">
+      <con:stage name="Transform Request">
+        <con:context/>
+        <con:actions>
+          <con1:assign varName="renderTemplateRequest">
+            <con2:id>_ActionId-4855109266833021459-2bc5690e.13003738b96.-7f36</con2:id>
+            <con1:expr>
+              <con2:xqueryText><![CDATA[<renderTemplate>
+          <templateName>RenderMe.vm</templateName>
+          <parameters>
+            <parameter>
+              <key>VARIABLE_NAME</key>
+              <value>VALUE</value>
+            </parameter>
+          </parameters>
+</renderTemplate>]]></con2:xqueryText>
+            </con1:expr>
+          </con1:assign>
+          <con1:javaCallout varName="renderedTemplate">
+            <con2:id>_ActionId-4855109266833021459-2bc5690e.13003738b96.-7f19</con2:id>
+            <con1:archive ref="TemplateService/TemplateUtilities"/>
+            <con1:className>nl.nagazuka.service.example.template.TemplateUtilities</con1:className>
+            <con1:method>public static java.lang.String renderTemplate(org.apache.xmlbeans.XmlObject)</con1:method>
+            <con1:expr>
+              <con2:xqueryText>$renderTemplateRequest</con2:xqueryText>
+            </con1:expr>
+          </con1:javaCallout>
+        </con:actions>
+      </con:stage>
+    </con:pipeline>
+    <con:pipeline type="response" name="PipelinePairNode1_response">
+      <con:stage name="Transform Response">
+        <con:context>
+          <con2:varNsDecl namespace="http://nl.nagazuka.services.example/TemplateService_v1/" prefix="tem"/>
+        </con:context>
+        <con:actions>
+          <con1:replace varName="body">
+            <con2:id>_ActionId-4855109266833021459-2bc5690e.13003738b96.-7e3b</con2:id>
+            <con1:location>
+              <con2:xpathText>./*</con2:xpathText>
+            </con1:location>
+            <con1:expr>
+              <con2:xqueryTransform>
+                <con2:resource ref="TemplateService/TransformResponse"/>
+                <con2:param name="string1">
+                  <con2:path>$renderedTemplate</con2:path>
+                </con2:param>
+              </con2:xqueryTransform>
+            </con1:expr>
+          </con1:replace>
+        </con:actions>
+      </con:stage>
+    </con:pipeline>
+    <con:flow>
+      <con:pipeline-node name="PipelinePairNode1">
+        <con:request>PipelinePairNode1_request</con:request>
+        <con:response>PipelinePairNode1_response</con:response>
+      </con:pipeline-node>
+    </con:flow>
+  </ser:router>
+</xml-fragment>
